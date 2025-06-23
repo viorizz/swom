@@ -1,4 +1,3 @@
-// src/components/modals/CreateCompanyModal.tsx
 'use client';
 
 import { Modal, TextInput, Button, Stack, Group, Fieldset } from '@mantine/core';
@@ -36,15 +35,29 @@ export function CreateCompanyModal({ opened, onClose }: CreateCompanyModalProps)
       },
     },
     validate: {
-      name: (value) => value.length < 2 ? 'Company name must be at least 2 characters' : null,
-      'engineeringCompany.name': (value) => value.length < 2 ? 'Engineering company name is required' : null,
-      'masonryCompany.name': (value) => value.length < 2 ? 'Masonry company name is required' : null,
-      'defaultInitials.designer': (value) => value.length < 1 ? 'Designer initials are required' : null,
-      'defaultInitials.engineer': (value) => value.length < 1 ? 'Engineer initials are required' : null,
+      name: (value: string) => value.length < 2 ? 'Company name must be at least 2 characters' : null,
     },
   });
 
   const handleSubmit = async (values: typeof form.values) => {
+    // Manual validation for nested fields
+    if (!values.engineeringCompany.name || values.engineeringCompany.name.length < 2) {
+      form.setFieldError('engineeringCompany.name', 'Engineering company name is required');
+      return;
+    }
+    if (!values.masonryCompany.name || values.masonryCompany.name.length < 2) {
+      form.setFieldError('masonryCompany.name', 'Masonry company name is required');
+      return;
+    }
+    if (!values.defaultInitials.designer || values.defaultInitials.designer.length < 1) {
+      form.setFieldError('defaultInitials.designer', 'Designer initials are required');
+      return;
+    }
+    if (!values.defaultInitials.engineer || values.defaultInitials.engineer.length < 1) {
+      form.setFieldError('defaultInitials.engineer', 'Engineer initials are required');
+      return;
+    }
+
     try {
       await createCompany({
         ...values,
@@ -59,7 +72,8 @@ export function CreateCompanyModal({ opened, onClose }: CreateCompanyModalProps)
       
       form.reset();
       onClose();
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Failed to create company:', error);
       notifications.show({
         title: 'Error',
         message: 'Failed to create company',
@@ -89,7 +103,6 @@ export function CreateCompanyModal({ opened, onClose }: CreateCompanyModalProps)
               <TextInput
                 label="Name"
                 placeholder="Engineering company name"
-                required
                 {...form.getInputProps('engineeringCompany.name')}
               />
               <TextInput
@@ -110,7 +123,6 @@ export function CreateCompanyModal({ opened, onClose }: CreateCompanyModalProps)
               <TextInput
                 label="Name"
                 placeholder="Masonry company name"
-                required
                 {...form.getInputProps('masonryCompany.name')}
               />
               <TextInput
@@ -131,13 +143,11 @@ export function CreateCompanyModal({ opened, onClose }: CreateCompanyModalProps)
               <TextInput
                 label="Designer"
                 placeholder="e.g., JD"
-                required
                 {...form.getInputProps('defaultInitials.designer')}
               />
               <TextInput
                 label="Engineer"
                 placeholder="e.g., MS"
-                required
                 {...form.getInputProps('defaultInitials.engineer')}
               />
             </Group>

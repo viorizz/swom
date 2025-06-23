@@ -31,6 +31,9 @@ export default function DashboardLayout({
   
   // Selection state
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
+  
+  // TODO: Use selectedItem to show detail views in main content area
+  console.log('Selected item:', selectedItem); // Temporary to avoid unused variable warning
   const [selectedCompanyForProject, setSelectedCompanyForProject] = useState<Id<'companies'> | null>(null);
   const [selectedProjectForOrder, setSelectedProjectForOrder] = useState<Id<'projects'> | null>(null);
 

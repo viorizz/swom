@@ -1,4 +1,3 @@
-// src/components/modals/CreateOrderModal.tsx
 'use client';
 
 import { Modal, TextInput, Button, Stack, Group, Select } from '@mantine/core';
@@ -31,11 +30,11 @@ export function CreateOrderModal({ opened, onClose, projectId }: CreateOrderModa
       engineerInitials: '',
     },
     validate: {
-      draftName: (value) => value.length < 2 ? 'Draft name must be at least 2 characters' : null,
-      draftNumber: (value) => value.length < 1 ? 'Draft number is required' : null,
-      orderNumber: (value) => value.length < 1 ? 'Order number is required' : null,
-      designerInitials: (value) => value.length < 1 ? 'Designer initials are required' : null,
-      engineerInitials: (value) => value.length < 1 ? 'Engineer initials are required' : null,
+      draftName: (value: string) => value.length < 2 ? 'Draft name must be at least 2 characters' : null,
+      draftNumber: (value: string) => value.length < 1 ? 'Draft number is required' : null,
+      orderNumber: (value: string) => value.length < 1 ? 'Order number is required' : null,
+      designerInitials: (value: string) => value.length < 1 ? 'Designer initials are required' : null,
+      engineerInitials: (value: string) => value.length < 1 ? 'Engineer initials are required' : null,
     },
   });
 
@@ -75,7 +74,8 @@ export function CreateOrderModal({ opened, onClose, projectId }: CreateOrderModa
       
       form.reset();
       onClose();
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Failed to create order:', error);
       notifications.show({
         title: 'Error',
         message: 'Failed to create order',

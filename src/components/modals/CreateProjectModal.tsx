@@ -1,4 +1,3 @@
-// src/components/modals/CreateProjectModal.tsx
 'use client';
 
 import { Modal, TextInput, Button, Stack, Group } from '@mantine/core';
@@ -25,8 +24,8 @@ export function CreateProjectModal({ opened, onClose, companyId }: CreateProject
       number: '',
     },
     validate: {
-      name: (value) => value.length < 2 ? 'Project name must be at least 2 characters' : null,
-      number: (value) => value.length < 1 ? 'Project number is required' : null,
+      name: (value: string) => value.length < 2 ? 'Project name must be at least 2 characters' : null,
+      number: (value: string) => value.length < 1 ? 'Project number is required' : null,
     },
   });
 
@@ -55,7 +54,8 @@ export function CreateProjectModal({ opened, onClose, companyId }: CreateProject
       
       form.reset();
       onClose();
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Failed to create project:', error);
       notifications.show({
         title: 'Error',
         message: 'Failed to create project',
