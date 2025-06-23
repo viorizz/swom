@@ -8,6 +8,7 @@ import '@mantine/nprogress/styles.css';
 import { ColorSchemeScript, MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { ModalsProvider } from '@mantine/modals';
+import { ClerkProvider } from '@clerk/nextjs';
 
 export const metadata = {
   title: 'Swiss Order Management',
@@ -20,34 +21,36 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <head>
-        <ColorSchemeScript />
-      </head>
-      <body>
-        <MantineProvider theme={{
-          primaryColor: 'yellow',
-          colors: {
-            yellow: [
-              '#fff9db',
-              '#fff3bf',
-              '#ffec99',
-              '#ffe066',
-              '#ffd43b',
-              '#ffcc02',
-              '#e6b800',
-              '#cc9900',
-              '#b38600',
-              '#997300'
-            ]
-          }
-        }}>
-          <Notifications />
-          <ModalsProvider>
-            {children}
-          </ModalsProvider>
-        </MantineProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <head>
+          <ColorSchemeScript />
+        </head>
+        <body>
+          <MantineProvider theme={{
+            primaryColor: 'yellow',
+            colors: {
+              yellow: [
+                '#fff9db',
+                '#fff3bf',
+                '#ffec99',
+                '#ffe066',
+                '#ffd43b',
+                '#ffcc02',
+                '#e6b800',
+                '#cc9900',
+                '#b38600',
+                '#997300'
+              ]
+            }
+          }}>
+            <Notifications />
+            <ModalsProvider>
+              {children}
+            </ModalsProvider>
+          </MantineProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
