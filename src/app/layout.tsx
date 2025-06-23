@@ -1,3 +1,4 @@
+// src/app/layout.tsx (Updated version)
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import '@mantine/spotlight/styles.css';
@@ -9,6 +10,8 @@ import { ColorSchemeScript, MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { ModalsProvider } from '@mantine/modals';
 import { ClerkProvider } from '@clerk/nextjs';
+import { ConvexProvider } from 'convex/react';
+import { convex } from '@/lib/convex';
 
 export const metadata = {
   title: 'Swiss Order Management',
@@ -27,28 +30,30 @@ export default function RootLayout({
           <ColorSchemeScript />
         </head>
         <body>
-          <MantineProvider theme={{
-            primaryColor: 'yellow',
-            colors: {
-              yellow: [
-                '#fff9db',
-                '#fff3bf',
-                '#ffec99',
-                '#ffe066',
-                '#ffd43b',
-                '#ffcc02',
-                '#e6b800',
-                '#cc9900',
-                '#b38600',
-                '#997300'
-              ]
-            }
-          }}>
-            <Notifications />
-            <ModalsProvider>
-              {children}
-            </ModalsProvider>
-          </MantineProvider>
+          <ConvexProvider client={convex}>
+            <MantineProvider theme={{
+              primaryColor: 'yellow',
+              colors: {
+                yellow: [
+                  '#fff9db',
+                  '#fff3bf',
+                  '#ffec99',
+                  '#ffe066',
+                  '#ffd43b',
+                  '#ffcc02',
+                  '#e6b800',
+                  '#cc9900',
+                  '#b38600',
+                  '#997300'
+                ]
+              }
+            }}>
+              <Notifications />
+              <ModalsProvider>
+                {children}
+              </ModalsProvider>
+            </MantineProvider>
+          </ConvexProvider>
         </body>
       </html>
     </ClerkProvider>
