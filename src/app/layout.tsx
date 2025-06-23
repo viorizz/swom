@@ -10,8 +10,7 @@ import { ColorSchemeScript, MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { ModalsProvider } from '@mantine/modals';
 import { ClerkProvider } from '@clerk/nextjs';
-import { ConvexProvider } from 'convex/react';
-import { convex } from '@/lib/convex';
+import { ConvexClientProvider } from '@/components/ConvexClientProvider';
 
 export const metadata = {
   title: 'Swiss Order Management',
@@ -30,7 +29,7 @@ export default function RootLayout({
           <ColorSchemeScript />
         </head>
         <body>
-          <ConvexProvider client={convex}>
+          <ConvexClientProvider>
             <MantineProvider theme={{
               primaryColor: 'yellow',
               colors: {
@@ -53,7 +52,7 @@ export default function RootLayout({
                 {children}
               </ModalsProvider>
             </MantineProvider>
-          </ConvexProvider>
+          </ConvexClientProvider>
         </body>
       </html>
     </ClerkProvider>
