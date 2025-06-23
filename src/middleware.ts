@@ -1,9 +1,6 @@
 import { clerkMiddleware } from '@clerk/nextjs/server';
 
-export default clerkMiddleware({
-    publicRoutes: ["/"],
-    ignoredRoutes: ["/((?!api|trpc))(_next.*|.+\\.[\\w]+$)"],
-});
+export default clerkMiddleware();
 
 export const config = {
   matcher: [

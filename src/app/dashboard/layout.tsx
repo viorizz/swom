@@ -1,9 +1,8 @@
 'use client';
 
-import { ClerkProvider, UserButton, useUser } from '@clerk/nextjs';
+import { UserButton, useUser } from '@clerk/nextjs';
 import { AppShell, Burger, Group, Title, Skeleton } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconHome, IconFileText, IconBuilding } from '@tabler/icons-react';
 
 export default function DashboardLayout({
   children,
@@ -11,7 +10,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [opened, { toggle }] = useDisclosure();
-  const { user, isLoaded } = useUser();
+  const { isLoaded } = useUser();
 
   if (!isLoaded) {
     return <Skeleton height="100vh" />;
