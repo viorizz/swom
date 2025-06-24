@@ -6,7 +6,7 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import type { Id } from '@/convex/_generated/dataModel';
 
 // Define proper interface for Company to replace 'any' type
@@ -52,23 +52,18 @@ export function EditCompanyModal({ opened, onClose, companyId }: EditCompanyModa
     },
   });
 
-  // Create a memoized callback to update form values
-  const updateFormValues = useCallback((companyData: Company) => {
-    form.setValues({
-      name: companyData.name,
-      type: companyData.type,
-      address: companyData.address || '',
-      phone: companyData.phone || '',
-      email: companyData.email || '',
-    });
-  }, [form]);
-
-  // Update form when company data loads - fixed dependency issue
+  // Update form when company data loads - FIXED: Remove circular dependency
   useEffect(() => {
     if (company) {
-      updateFormValues(company);
+      form.setValues({
+        name: company.name,
+        type: company.type,
+        address: company.address || '',
+        phone: company.phone || '',
+        email: company.email || '',
+      });
     }
-  }, [company, updateFormValues]);
+  }, [company]); // Only depend on company, not form methods
 
   const handleSubmit = async (values: FormValues) => {
     try {
