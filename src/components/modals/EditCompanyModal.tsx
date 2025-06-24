@@ -44,7 +44,7 @@ export function EditCompanyModal({ opened, onClose, companyId }: EditCompanyModa
         email: company.email || '',
       });
     }
-  }, [company]);
+  }, [company, form]);
 
   const handleSubmit = async (values: typeof form.values) => {
     try {

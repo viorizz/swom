@@ -6,9 +6,7 @@ import { useUser } from '@clerk/nextjs';
 import { Container, Title, Text, Stack, Card, Group, Badge, Button, Grid, Box } from '@mantine/core';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { IconFolder, IconUsers, IconPlus, IconCalendar, IconBuilding, IconSearch } from '@tabler/icons-react';
-import { useState } from 'react';
-import { Select, TextInput } from '@mantine/core';
+import { IconFolder, IconUsers, IconPlus, IconCalendar} from '@tabler/icons-react';
 import { CompaniesManagement } from '@/components/CompaniesManagement';
 
 // Projects Dashboard Component

@@ -39,7 +39,7 @@ export default function DashboardLayout({
   const [companyModalOpened, { open: openCompanyModal, close: closeCompanyModal }] = useDisclosure(false);
   const [pendingCompaniesModalOpened, { open: openPendingCompaniesModal, close: closePendingCompaniesModal }] = useDisclosure(false);
   
-  // Selection state
+  // Selection state - keep selectedItem since it's used by navigation components
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
   const [selectedProjectForOrder, setSelectedProjectForOrder] = useState<Id<'projects'> | null>(null);
   const [selectedProjectForPending, setSelectedProjectForPending] = useState<Id<'projects'> | null>(null);

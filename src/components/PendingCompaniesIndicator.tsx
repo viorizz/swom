@@ -6,6 +6,17 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useUser } from '@clerk/nextjs';
 import { IconAlertCircle, IconBuilding } from '@tabler/icons-react';
+import type { Id } from '@/convex/_generated/dataModel';
+
+// Define proper interfaces to replace 'any' types
+interface PendingCompany {
+  _id: Id<'pendingCompanies'>;
+  projectId: Id<'projects'>;
+  name: string;
+  type: 'masonry' | 'architect' | 'engineer' | 'client';
+  tenantId: string;
+  createdAt: string;
+}
 
 interface PendingCompaniesIndicatorProps {
   onCompletePending?: (projectId: string) => void;
@@ -17,21 +28,21 @@ export function PendingCompaniesIndicator({ onCompletePending }: PendingCompanie
   const pendingCompanies = useQuery(
     api.pendingCompanies.listByTenant,
     user?.id ? { tenantId: user.id } : 'skip'
-  );
+  ) as PendingCompany[] | undefined;
 
   if (!pendingCompanies || pendingCompanies.length === 0) {
     return null;
   }
 
-  // Group by project
-  const pendingByProject = pendingCompanies.reduce((acc: any, pending: any) => {
+  // Group by project with proper typing - this replaces the 'any' types
+  const pendingByProject = pendingCompanies.reduce((acc: Record<string, PendingCompany[]>, pending: PendingCompany) => {
     const projectId = pending.projectId;
     if (!acc[projectId]) {
       acc[projectId] = [];
     }
     acc[projectId].push(pending);
     return acc;
-  }, {} as Record<string, typeof pendingCompanies>);
+  }, {});
 
   return (
     <Card withBorder mb="md" style={{ borderColor: 'var(--mantine-color-orange-4)' }}>
@@ -56,11 +67,11 @@ export function PendingCompaniesIndicator({ onCompletePending }: PendingCompanie
               <Group gap="xs">
                 <IconBuilding size={14} />
                 <Text size="sm" fw={500}>
-                  {(companies as any[]).length} pending companies
+                  {companies.length} pending companies
                 </Text>
               </Group>
               <Group gap="xs" mt="xs">
-                {(companies as any[]).map((company: any) => (
+                {companies.map((company: PendingCompany) => (
                   <Badge key={company._id} size="xs" variant="light" color="orange">
                     {company.name}
                   </Badge>
