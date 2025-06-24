@@ -22,6 +22,13 @@ import { useState } from 'react';
 import { IconInfoCircle, IconBuilding } from '@tabler/icons-react';
 import type { Id } from '@/convex/_generated/dataModel';
 
+// Define proper interface for pending company
+interface PendingCompany {
+  _id: Id<'pendingCompanies'>;
+  name: string;
+  type: 'masonry' | 'architect' | 'engineer' | 'client';
+}
+
 interface CompletePendingCompaniesModalProps {
   opened: boolean;
   onClose: () => void;
@@ -38,7 +45,7 @@ export function CompletePendingCompaniesModal({
   const pendingCompanies = useQuery(
     api.pendingCompanies.listByProject,
     projectId ? { projectId } : 'skip'
-  );
+  ) as PendingCompany[] | undefined;
   
   const completePendingCompany = useMutation(api.pendingCompanies.completePendingCompany);
 
@@ -220,7 +227,7 @@ export function CompletePendingCompaniesModal({
             <div>
               <Text size="sm" fw={500} mb="xs">Remaining companies:</Text>
               <Group gap="xs">
-                {pendingCompanies.slice(currentCompanyIndex + 1).map((company, index) => (
+                {pendingCompanies.slice(currentCompanyIndex + 1).map((company) => (
                   <Badge 
                     key={company._id} 
                     color={getCompanyTypeColor(company.type)} 

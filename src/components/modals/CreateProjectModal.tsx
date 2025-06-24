@@ -9,6 +9,13 @@ import { api } from '@/convex/_generated/api';
 import { useUser } from '@clerk/nextjs';
 import type { Id } from '@/convex/_generated/dataModel';
 
+// Define proper interfaces to replace 'any' types
+interface Company {
+  _id: Id<'companies'>;
+  name: string;
+  type: 'masonry' | 'architect' | 'engineer' | 'client';
+}
+
 interface CreateProjectModalProps {
   opened: boolean;
   onClose: () => void;
@@ -19,23 +26,26 @@ export function CreateProjectModal({ opened, onClose, onProjectCreatedWithPendin
   const { user } = useUser();
   const createProjectWithNewCompanies = useMutation(api.projects.createWithNewCompanies);
   
-  // Fetch companies by type
+  // Fetch companies by type with proper typing
   const masonryCompanies = useQuery(
     api.companies.listByTenantAndType,
     user?.id ? { tenantId: user.id, type: 'masonry' } : 'skip'
-  );
+  ) as Company[] | undefined;
+  
   const architectCompanies = useQuery(
     api.companies.listByTenantAndType,
     user?.id ? { tenantId: user.id, type: 'architect' } : 'skip'
-  );
+  ) as Company[] | undefined;
+  
   const engineerCompanies = useQuery(
     api.companies.listByTenantAndType,
     user?.id ? { tenantId: user.id, type: 'engineer' } : 'skip'
-  );
+  ) as Company[] | undefined;
+  
   const clientCompanies = useQuery(
     api.companies.listByTenantAndType,
     user?.id ? { tenantId: user.id, type: 'client' } : 'skip'
-  );
+  ) as Company[] | undefined;
 
   const form = useForm({
     initialValues: {
@@ -55,14 +65,12 @@ export function CreateProjectModal({ opened, onClose, onProjectCreatedWithPendin
     },
   });
 
-  // Create select data for company dropdowns
-  const createSelectData = (companies: any[] = []) => {
-    const existingCompanies = companies.map((company: any) => ({
+  // Create select data for company dropdowns with proper typing
+  const createSelectData = (companies: Company[] = []) => {
+    return companies.map((company) => ({
       value: company._id,
       label: company.name,
     }));
-
-    return existingCompanies;
   };
 
   const masonrySelectData = createSelectData(masonryCompanies);
@@ -72,11 +80,11 @@ export function CreateProjectModal({ opened, onClose, onProjectCreatedWithPendin
 
   const handleSubmit = async (values: typeof form.values) => {
     try {
-      // Determine if each company selection is new or existing
-      const getCompanyValue = (selectedValue: string, companies: any[] = []) => {
+      // Determine if each company selection is new or existing with proper typing
+      const getCompanyValue = (selectedValue: string, companies: Company[] = []): string | undefined => {
         if (!selectedValue) return undefined;
         
-        const existingCompany = companies.find((c: any) => c._id === selectedValue);
+        const existingCompany = companies.find((c) => c._id === selectedValue);
         if (existingCompany) {
           return existingCompany._id; // Return ID for existing company
         } else {

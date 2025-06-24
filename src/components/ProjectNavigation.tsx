@@ -1,4 +1,4 @@
-// src/components/ProjectsNavigation.tsx
+// src/components/ProjectNavigation.tsx (Complete Fix)
 'use client';
 
 import { useState } from 'react';
@@ -32,6 +32,33 @@ import type { Id } from '@/convex/_generated/dataModel';
 interface SelectedItem {
   type: 'project' | 'order';
   id: Id<'projects'> | Id<'orders'>;
+}
+
+// Define proper interface for Order to replace 'any' type
+interface Order {
+  _id: Id<'orders'>;
+  draftName: string;
+  status: 'draft' | 'submitted';
+}
+
+// Define proper interface for Company
+interface Company {
+  name: string;
+}
+
+// Define proper interface for Project with populated data
+interface ProjectWithData {
+  _id: Id<'projects'>;
+  name: string;
+  number: string;
+  status: 'planning' | 'active' | 'completed' | 'on_hold';
+  orders: Order[];
+  companies: {
+    masonry?: Company | null;
+    architect?: Company | null;
+    engineer?: Company | null;
+    client?: Company | null;
+  };
 }
 
 interface ProjectsNavigationProps {
@@ -98,6 +125,9 @@ export function ProjectsNavigation({
     );
   }
 
+  // Type the projects properly - cast to our interface
+  const typedProjects = projects as ProjectWithData[];
+
   return (
     <Stack gap={0}>
       {/* Pending Companies Indicator */}
@@ -122,17 +152,17 @@ export function ProjectsNavigation({
 
       {/* Projects List */}
       <Box px="sm">
-        {projects.map((project) => {
+        {typedProjects.map((project) => {
           const isProjectExpanded = expandedProjects.has(project._id);
           const isProjectSelected = selected?.type === 'project' && selected.id === project._id;
 
-          // Get company names for display
+          // Get company names for display with proper typing
           const companyNames = [
             project.companies?.masonry?.name,
             project.companies?.architect?.name,
             project.companies?.engineer?.name,
             project.companies?.client?.name,
-          ].filter(Boolean);
+          ].filter((name): name is string => Boolean(name));
 
           return (
             <Card key={project._id} mb="xs" padding="xs" withBorder={false}>
@@ -204,7 +234,7 @@ export function ProjectsNavigation({
                       No orders yet
                     </Text>
                   ) : (
-                    project.orders.map((order: any) => {
+                    project.orders.map((order) => {
                       const isOrderSelected = selected?.type === 'order' && selected.id === order._id;
 
                       return (

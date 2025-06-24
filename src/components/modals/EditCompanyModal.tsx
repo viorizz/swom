@@ -6,8 +6,27 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import type { Id } from '@/convex/_generated/dataModel';
+
+// Define proper interface for Company to replace 'any' type
+interface Company {
+  _id: Id<'companies'>;
+  name: string;
+  type: 'masonry' | 'architect' | 'engineer' | 'client';
+  address?: string;
+  phone?: string;
+  email?: string;
+}
+
+// Define the form values type
+interface FormValues {
+  name: string;
+  type: string;
+  address: string;
+  phone: string;
+  email: string;
+}
 
 interface EditCompanyModalProps {
   opened: boolean;
@@ -17,9 +36,9 @@ interface EditCompanyModalProps {
 
 export function EditCompanyModal({ opened, onClose, companyId }: EditCompanyModalProps) {
   const updateCompany = useMutation(api.companies.update);
-  const company = useQuery(api.companies.get, { id: companyId });
+  const company = useQuery(api.companies.get, { id: companyId }) as Company | null | undefined;
 
-  const form = useForm({
+  const form = useForm<FormValues>({
     initialValues: {
       name: '',
       type: '',
@@ -33,25 +52,43 @@ export function EditCompanyModal({ opened, onClose, companyId }: EditCompanyModa
     },
   });
 
-  // Update form when company data loads
+  // Create a memoized callback to update form values
+  const updateFormValues = useCallback((companyData: Company) => {
+    form.setValues({
+      name: companyData.name,
+      type: companyData.type,
+      address: companyData.address || '',
+      phone: companyData.phone || '',
+      email: companyData.email || '',
+    });
+  }, [form]);
+
+  // Update form when company data loads - fixed dependency issue
   useEffect(() => {
     if (company) {
-      form.setValues({
-        name: company.name,
-        type: company.type,
-        address: company.address || '',
-        phone: company.phone || '',
-        email: company.email || '',
-      });
+      updateFormValues(company);
     }
-  }, [company, form]);
+  }, [company, updateFormValues]);
 
-  const handleSubmit = async (values: typeof form.values) => {
+  const handleSubmit = async (values: FormValues) => {
     try {
+      // Validate that type is one of the expected values
+      const validTypes = ['masonry', 'architect', 'engineer', 'client'] as const;
+      if (!validTypes.includes(values.type as typeof validTypes[number])) {
+        notifications.show({
+          title: 'Error',
+          message: 'Invalid company type selected',
+          color: 'red',
+        });
+        return;
+      }
+
+      const companyType = values.type as 'masonry' | 'architect' | 'engineer' | 'client';
+      
       await updateCompany({
         id: companyId,
         name: values.name,
-        type: values.type as any,
+        type: companyType,
         address: values.address || undefined,
         phone: values.phone || undefined,
         email: values.email || undefined,

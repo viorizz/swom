@@ -39,10 +39,15 @@ export default function DashboardLayout({
   const [companyModalOpened, { open: openCompanyModal, close: closeCompanyModal }] = useDisclosure(false);
   const [pendingCompaniesModalOpened, { open: openPendingCompaniesModal, close: closePendingCompaniesModal }] = useDisclosure(false);
   
-  // Selection state - keep selectedItem since it's used by navigation components
-  const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
+  // Selection state - only keep what we actually need
   const [selectedProjectForOrder, setSelectedProjectForOrder] = useState<Id<'projects'> | null>(null);
   const [selectedProjectForPending, setSelectedProjectForPending] = useState<Id<'projects'> | null>(null);
+
+  // Simple selection handler that doesn't store the selection (since we don't use it)
+  const handleItemSelect = (item: SelectedItem) => {
+    // Navigation components expect an onSelect callback, but we don't need to store the selection
+    console.log('Item selected:', item);
+  };
 
   const handleTabChange = (value: string | null) => {
     if (value) {
@@ -103,7 +108,7 @@ export default function DashboardLayout({
 
             <Tabs.Panel value="projects" style={{ flex: 1, overflow: 'auto' }}>
               <ProjectsNavigation
-                onSelect={setSelectedItem}
+                onSelect={handleItemSelect}
                 onCreateProject={openProjectModal}
                 onCreateOrder={handleCreateOrder}
                 onCompletePending={handleProjectCreatedWithPending}
@@ -112,7 +117,7 @@ export default function DashboardLayout({
 
             <Tabs.Panel value="companies" style={{ flex: 1, overflow: 'auto' }}>
               <CompaniesNavigation
-                onSelect={setSelectedItem}
+                onSelect={handleItemSelect}
                 onCreateCompany={openCompanyModal}
               />
             </Tabs.Panel>
