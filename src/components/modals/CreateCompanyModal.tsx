@@ -1,6 +1,7 @@
+// src/components/modals/CreateCompanyModal.tsx
 'use client';
 
-import { Modal, TextInput, Button, Stack, Group, Fieldset } from '@mantine/core';
+import { Modal, TextInput, Button, Stack, Group, Select } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { useMutation } from 'convex/react';
@@ -19,49 +20,37 @@ export function CreateCompanyModal({ opened, onClose }: CreateCompanyModalProps)
   const form = useForm({
     initialValues: {
       name: '',
-      engineeringCompany: {
-        name: '',
-        address: '',
-        phone: '',
-      },
-      masonryCompany: {
-        name: '',
-        address: '',
-        phone: '',
-      },
-      defaultInitials: {
-        designer: '',
-        engineer: '',
-      },
+      type: '',
+      address: '',
+      phone: '',
+      email: '',
     },
     validate: {
       name: (value: string) => value.length < 2 ? 'Company name must be at least 2 characters' : null,
+      type: (value: string) => !value ? 'Company type is required' : null,
     },
   });
 
   const handleSubmit = async (values: typeof form.values) => {
-    // Manual validation for nested fields
-    if (!values.engineeringCompany.name || values.engineeringCompany.name.length < 2) {
-      form.setFieldError('engineeringCompany.name', 'Engineering company name is required');
-      return;
-    }
-    if (!values.masonryCompany.name || values.masonryCompany.name.length < 2) {
-      form.setFieldError('masonryCompany.name', 'Masonry company name is required');
-      return;
-    }
-    if (!values.defaultInitials.designer || values.defaultInitials.designer.length < 1) {
-      form.setFieldError('defaultInitials.designer', 'Designer initials are required');
-      return;
-    }
-    if (!values.defaultInitials.engineer || values.defaultInitials.engineer.length < 1) {
-      form.setFieldError('defaultInitials.engineer', 'Engineer initials are required');
-      return;
-    }
-
     try {
+      // Validate that type is one of the expected values
+      const validTypes = ['masonry', 'architect', 'engineer', 'client'] as const;
+      if (!validTypes.includes(values.type as typeof validTypes[number])) {
+        notifications.show({
+          title: 'Error',
+          message: 'Please select a valid company type',
+          color: 'red',
+        });
+        return;
+      }
+
       await createCompany({
-        ...values,
-        tenantId: user?.id || 'default', // Use Clerk user ID as tenant ID
+        name: values.name,
+        type: values.type as 'masonry' | 'architect' | 'engineer' | 'client',
+        address: values.address || undefined,
+        phone: values.phone || undefined,
+        email: values.email || undefined,
+        tenantId: user?.id || 'default',
       });
       
       notifications.show({
@@ -98,60 +87,38 @@ export function CreateCompanyModal({ opened, onClose }: CreateCompanyModalProps)
             {...form.getInputProps('name')}
           />
 
-          <Fieldset legend="Engineering Company">
-            <Stack gap="sm">
-              <TextInput
-                label="Name"
-                placeholder="Engineering company name"
-                {...form.getInputProps('engineeringCompany.name')}
-              />
-              <TextInput
-                label="Address"
-                placeholder="Company address"
-                {...form.getInputProps('engineeringCompany.address')}
-              />
-              <TextInput
-                label="Phone"
-                placeholder="Phone number"
-                {...form.getInputProps('engineeringCompany.phone')}
-              />
-            </Stack>
-          </Fieldset>
+          <Select
+            label="Company Type"
+            placeholder="Select company type"
+            required
+            data={[
+              { value: 'masonry', label: 'Masonry Company' },
+              { value: 'architect', label: 'Architecture Firm' },
+              { value: 'engineer', label: 'Engineering Company' },
+              { value: 'client', label: 'Client/Owner' },
+            ]}
+            {...form.getInputProps('type')}
+          />
 
-          <Fieldset legend="Masonry Company">
-            <Stack gap="sm">
-              <TextInput
-                label="Name"
-                placeholder="Masonry company name"
-                {...form.getInputProps('masonryCompany.name')}
-              />
-              <TextInput
-                label="Address"
-                placeholder="Company address"
-                {...form.getInputProps('masonryCompany.address')}
-              />
-              <TextInput
-                label="Phone"
-                placeholder="Phone number"
-                {...form.getInputProps('masonryCompany.phone')}
-              />
-            </Stack>
-          </Fieldset>
+          <TextInput
+            label="Address"
+            placeholder="Company address (optional)"
+            {...form.getInputProps('address')}
+          />
 
-          <Fieldset legend="Default Initials">
-            <Group grow>
-              <TextInput
-                label="Designer"
-                placeholder="e.g., JD"
-                {...form.getInputProps('defaultInitials.designer')}
-              />
-              <TextInput
-                label="Engineer"
-                placeholder="e.g., MS"
-                {...form.getInputProps('defaultInitials.engineer')}
-              />
-            </Group>
-          </Fieldset>
+          <Group grow>
+            <TextInput
+              label="Phone"
+              placeholder="Phone number (optional)"
+              {...form.getInputProps('phone')}
+            />
+            <TextInput
+              label="Email"
+              placeholder="Email address (optional)"
+              type="email"
+              {...form.getInputProps('email')}
+            />
+          </Group>
 
           <Group justify="flex-end" mt="md">
             <Button variant="light" onClick={onClose}>
