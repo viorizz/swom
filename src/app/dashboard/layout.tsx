@@ -1,7 +1,7 @@
 // src/app/dashboard/layout.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { UserButton, useUser } from '@clerk/nextjs';
 import { AppShell, Burger, Group, Title, Skeleton, Tabs } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -20,7 +20,8 @@ interface SelectedItem {
   id: Id<'projects'> | Id<'orders'> | Id<'companies'>;
 }
 
-export default function DashboardLayout({
+// Dashboard Layout Content that uses useSearchParams
+function DashboardLayoutContent({
   children,
 }: {
   children: React.ReactNode;
@@ -151,5 +152,20 @@ export default function DashboardLayout({
         projectId={selectedProjectForPending}
       />
     </>
+  );
+}
+
+// Main Dashboard Layout with Suspense boundary
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <Suspense fallback={<Skeleton height="100vh" />}>
+      <DashboardLayoutContent>
+        {children}
+      </DashboardLayoutContent>
+    </Suspense>
   );
 }

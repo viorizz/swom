@@ -1,12 +1,13 @@
 // src/app/dashboard/page.tsx
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
-import { Container, Title, Text, Stack, Card, Group, Badge, Button, Grid, Box } from '@mantine/core';
+import { Container, Title, Text, Stack, Card, Group, Badge, Button, Grid, Box, Skeleton } from '@mantine/core';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { IconFolder, IconUsers, IconPlus, IconCalendar} from '@tabler/icons-react';
+import { IconFolder, IconUsers, IconPlus, IconCalendar } from '@tabler/icons-react';
 import { CompaniesManagement } from '@/components/CompaniesManagement';
 
 // Projects Dashboard Component
@@ -169,20 +170,50 @@ function CompaniesDashboard() {
   return <CompaniesManagement />;
 }
 
-// Main Dashboard Page
-export default function DashboardPage() {
+// Dashboard Content Component that uses useSearchParams
+function DashboardContent() {
   const searchParams = useSearchParams();
   const { isLoaded, isSignedIn } = useUser();
   
   const activeTab = searchParams.get('tab') || 'projects';
 
   if (!isLoaded) {
-    return <div>Loading...</div>;
+    return (
+      <Container>
+        <Skeleton height={200} />
+      </Container>
+    );
   }
 
   if (!isSignedIn) {
-    return <div>Please sign in</div>;
+    return (
+      <Container>
+        <Text>Please sign in</Text>
+      </Container>
+    );
   }
 
   return activeTab === 'companies' ? <CompaniesDashboard /> : <ProjectsDashboard />;
+}
+
+// Main Dashboard Page with Suspense boundary
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={
+      <Container>
+        <Stack gap="md">
+          <Skeleton height={40} />
+          <Grid>
+            <Grid.Col span={3}><Skeleton height={120} /></Grid.Col>
+            <Grid.Col span={3}><Skeleton height={120} /></Grid.Col>
+            <Grid.Col span={3}><Skeleton height={120} /></Grid.Col>
+            <Grid.Col span={3}><Skeleton height={120} /></Grid.Col>
+          </Grid>
+          <Skeleton height={300} />
+        </Stack>
+      </Container>
+    }>
+      <DashboardContent />
+    </Suspense>
+  );
 }
