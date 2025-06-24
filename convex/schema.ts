@@ -4,29 +4,47 @@ import { v } from "convex/values";
 export default defineSchema({
   companies: defineTable({
     name: v.string(),
+    type: v.union(
+      v.literal("masonry"),
+      v.literal("architect"), 
+      v.literal("engineer"),
+      v.literal("client")
+    ),
+    address: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    email: v.optional(v.string()),
     tenantId: v.string(),
-    engineeringCompany: v.object({
-      name: v.string(),
-      address: v.string(),
-      phone: v.string(),
-    }),
-    masonryCompany: v.object({
-      name: v.string(),
-      address: v.string(),
-      phone: v.string(),
-    }),
-    defaultInitials: v.object({
-      designer: v.string(),
-      engineer: v.string(),
-    }),
-  }).index("by_tenant", ["tenantId"]),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_type", ["type"])
+    .index("by_tenant_type", ["tenantId", "type"]),
 
   projects: defineTable({
-    companyId: v.id("companies"),
     name: v.string(),
     number: v.string(),
+    description: v.optional(v.string()),
+    // Company assignments by role
+    masonryCompanyId: v.optional(v.id("companies")),
+    architectCompanyId: v.optional(v.id("companies")),
+    engineerCompanyId: v.optional(v.id("companies")),
+    clientCompanyId: v.optional(v.id("companies")),
+    // Project metadata
+    startDate: v.optional(v.string()),
+    endDate: v.optional(v.string()),
+    status: v.union(
+      v.literal("planning"),
+      v.literal("active"),
+      v.literal("completed"),
+      v.literal("on_hold")
+    ),
     tenantId: v.string(),
-  }).index("by_company", ["companyId"]),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_status", ["status"])
+    .index("by_masonry_company", ["masonryCompanyId"])
+    .index("by_architect_company", ["architectCompanyId"])
+    .index("by_engineer_company", ["engineerCompanyId"])
+    .index("by_client_company", ["clientCompanyId"]),
 
   orders: defineTable({
     projectId: v.id("projects"),
@@ -59,5 +77,21 @@ export default defineSchema({
     }),
     manufacturerData: v.any(),
     tenantId: v.string(),
-  }).index("by_order", ["orderId"]).index("by_order_position", ["orderId", "position"]),
+  })
+    .index("by_order", ["orderId"])
+    .index("by_order_position", ["orderId", "position"]),
+
+  // New table to track pending company creations during project setup
+  pendingCompanies: defineTable({
+    projectId: v.id("projects"),
+    name: v.string(),
+    type: v.union(
+      v.literal("masonry"),
+      v.literal("architect"), 
+      v.literal("engineer"),
+      v.literal("client")
+    ),
+    tenantId: v.string(),
+    createdAt: v.string(),
+  }).index("by_project", ["projectId"]).index("by_tenant", ["tenantId"]),
 });

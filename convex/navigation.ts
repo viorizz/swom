@@ -1,42 +1,83 @@
-// convex/navigation.ts - Optimized query for tree navigation
+// convex/navigation.ts - Updated for new structure
 import { query } from "./_generated/server";
 import { v } from "convex/values";
 
 export const getNavigationTree = query({
-  args: {},
-  handler: async (ctx) => {
-    // Get all companies first
-    const companies = await ctx.db.query("companies").collect();
+  args: { tenantId: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const tenantFilter = args.tenantId || "default";
     
-    // For each company, get projects and orders in one go
-    const tree = await Promise.all(
-      companies.map(async (company) => {
-        const projects = await ctx.db
-          .query("projects")
-          .withIndex("by_company", (q) => q.eq("companyId", company._id))
+    // Get all projects for the tenant
+    const projects = await ctx.db
+      .query("projects")
+      .withIndex("by_tenant", (q) => q.eq("tenantId", tenantFilter))
+      .collect();
+    
+    // For each project, get orders and company info
+    const projectsWithOrdersAndCompanies = await Promise.all(
+      projects.map(async (project) => {
+        // Get orders for this project
+        const orders = await ctx.db
+          .query("orders")
+          .withIndex("by_project", (q) => q.eq("projectId", project._id))
           .collect();
         
-        const projectsWithOrders = await Promise.all(
-          projects.map(async (project) => {
-            const orders = await ctx.db
-              .query("orders")
-              .withIndex("by_project", (q) => q.eq("projectId", project._id))
-              .collect();
-            
-            return {
-              ...project,
-              orders,
-            };
-          })
-        );
+        // Get company information
+        const [masonryCompany, architectCompany, engineerCompany, clientCompany] = await Promise.all([
+          project.masonryCompanyId ? ctx.db.get(project.masonryCompanyId) : null,
+          project.architectCompanyId ? ctx.db.get(project.architectCompanyId) : null,
+          project.engineerCompanyId ? ctx.db.get(project.engineerCompanyId) : null,
+          project.clientCompanyId ? ctx.db.get(project.clientCompanyId) : null,
+        ]);
         
         return {
-          ...company,
-          projects: projectsWithOrders,
+          ...project,
+          orders,
+          companies: {
+            masonry: masonryCompany,
+            architect: architectCompany,
+            engineer: engineerCompany,
+            client: clientCompany,
+          },
         };
       })
     );
     
-    return tree;
+    return projectsWithOrdersAndCompanies;
+  },
+});
+
+// Get companies navigation (for companies tab)
+export const getCompaniesTree = query({
+  args: { tenantId: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const tenantFilter = args.tenantId || "default";
+    
+    const companies = await ctx.db
+      .query("companies")
+      .withIndex("by_tenant", (q) => q.eq("tenantId", tenantFilter))
+      .collect();
+    
+    // Group companies by type
+    const companiesByType = companies.reduce((acc, company) => {
+      if (!acc[company.type]) {
+        acc[company.type] = [];
+      }
+      acc[company.type].push(company);
+      return acc;
+    }, {} as Record<string, typeof companies>);
+    
+    return companiesByType;
+  },
+});
+
+// Get pending companies for a project (companies that need to be completed)
+export const getPendingCompanies = query({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("pendingCompanies")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
   },
 });

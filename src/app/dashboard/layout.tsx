@@ -3,17 +3,21 @@
 
 import { useState } from 'react';
 import { UserButton, useUser } from '@clerk/nextjs';
-import { AppShell, Burger, Group, Title, Skeleton } from '@mantine/core';
+import { AppShell, Burger, Group, Title, Skeleton, Tabs } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { TreeNavigation } from '@/components/TreeNavigation';
-import { CreateCompanyModal } from '@/components/modals/CreateCompanyModal';
+import { ProjectsNavigation } from '@/components/ProjectNavigation';
+import { CompaniesNavigation } from '@/components/CompaniesNavigation';
 import { CreateProjectModal } from '@/components/modals/CreateProjectModal';
 import { CreateOrderModal } from '@/components/modals/CreateOrderModal';
+import { CreateCompanyModal } from '@/components/modals/CreateCompanyModal';
+import { CompletePendingCompaniesModal } from '@/components/modals/CompletePendingCompaniesModal';
+import { IconBuilding, IconFolder } from '@tabler/icons-react';
 import type { Id } from '@/convex/_generated/dataModel';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface SelectedItem {
-  type: 'company' | 'project' | 'order';
-  id: Id<'companies'> | Id<'projects'> | Id<'orders'>;
+  type: 'project' | 'order' | 'company';
+  id: Id<'projects'> | Id<'orders'> | Id<'companies'>;
 }
 
 export default function DashboardLayout({
@@ -23,28 +27,37 @@ export default function DashboardLayout({
 }) {
   const [opened, { toggle }] = useDisclosure();
   const { isLoaded } = useUser();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Get active tab from URL or default to projects
+  const activeTab = searchParams.get('tab') || 'projects';
   
   // Modal states
-  const [companyModalOpened, { open: openCompanyModal, close: closeCompanyModal }] = useDisclosure(false);
   const [projectModalOpened, { open: openProjectModal, close: closeProjectModal }] = useDisclosure(false);
   const [orderModalOpened, { open: openOrderModal, close: closeOrderModal }] = useDisclosure(false);
+  const [companyModalOpened, { open: openCompanyModal, close: closeCompanyModal }] = useDisclosure(false);
+  const [pendingCompaniesModalOpened, { open: openPendingCompaniesModal, close: closePendingCompaniesModal }] = useDisclosure(false);
   
   // Selection state
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
-  
-  // TODO: Use selectedItem to show detail views in main content area
-  console.log('Selected item:', selectedItem); // Temporary to avoid unused variable warning
-  const [selectedCompanyForProject, setSelectedCompanyForProject] = useState<Id<'companies'> | null>(null);
   const [selectedProjectForOrder, setSelectedProjectForOrder] = useState<Id<'projects'> | null>(null);
+  const [selectedProjectForPending, setSelectedProjectForPending] = useState<Id<'projects'> | null>(null);
 
-  const handleCreateProject = (companyId: Id<'companies'>) => {
-    setSelectedCompanyForProject(companyId);
-    openProjectModal();
+  const handleTabChange = (value: string | null) => {
+    if (value) {
+      router.push(`/dashboard?tab=${value}`);
+    }
   };
 
   const handleCreateOrder = (projectId: Id<'projects'>) => {
     setSelectedProjectForOrder(projectId);
     openOrderModal();
+  };
+
+  const handleProjectCreatedWithPending = (projectId: Id<'projects'>) => {
+    setSelectedProjectForPending(projectId);
+    openPendingCompaniesModal();
   };
 
   if (!isLoaded) {
@@ -56,7 +69,7 @@ export default function DashboardLayout({
       <AppShell
         header={{ height: 60 }}
         navbar={{
-          width: 300,
+          width: 320,
           breakpoint: 'sm',
           collapsed: { mobile: !opened },
         }}
@@ -73,33 +86,64 @@ export default function DashboardLayout({
         </AppShell.Header>
 
         <AppShell.Navbar>
-          <TreeNavigation
-            onSelect={setSelectedItem}
-            onCreateCompany={openCompanyModal}
-            onCreateProject={handleCreateProject}
-            onCreateOrder={handleCreateOrder}
-          />
+          <Tabs 
+            value={activeTab} 
+            onChange={handleTabChange}
+            orientation="horizontal"
+            style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+          >
+            <Tabs.List grow>
+              <Tabs.Tab value="projects" leftSection={<IconFolder size={16} />}>
+                Projects
+              </Tabs.Tab>
+              <Tabs.Tab value="companies" leftSection={<IconBuilding size={16} />}>
+                Companies
+              </Tabs.Tab>
+            </Tabs.List>
+
+            <Tabs.Panel value="projects" style={{ flex: 1, overflow: 'auto' }}>
+              <ProjectsNavigation
+                onSelect={setSelectedItem}
+                onCreateProject={openProjectModal}
+                onCreateOrder={handleCreateOrder}
+                onCompletePending={handleProjectCreatedWithPending}
+              />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="companies" style={{ flex: 1, overflow: 'auto' }}>
+              <CompaniesNavigation
+                onSelect={setSelectedItem}
+                onCreateCompany={openCompanyModal}
+              />
+            </Tabs.Panel>
+          </Tabs>
         </AppShell.Navbar>
 
         <AppShell.Main>{children}</AppShell.Main>
       </AppShell>
 
       {/* Modals */}
-      <CreateCompanyModal
-        opened={companyModalOpened}
-        onClose={closeCompanyModal}
-      />
-      
       <CreateProjectModal
         opened={projectModalOpened}
         onClose={closeProjectModal}
-        companyId={selectedCompanyForProject}
+        onProjectCreatedWithPending={handleProjectCreatedWithPending}
       />
       
       <CreateOrderModal
         opened={orderModalOpened}
         onClose={closeOrderModal}
         projectId={selectedProjectForOrder}
+      />
+      
+      <CreateCompanyModal
+        opened={companyModalOpened}
+        onClose={closeCompanyModal}
+      />
+
+      <CompletePendingCompaniesModal
+        opened={pendingCompaniesModalOpened}
+        onClose={closePendingCompaniesModal}
+        projectId={selectedProjectForPending}
       />
     </>
   );
