@@ -10,9 +10,14 @@ import { api } from '@/convex/_generated/api';
 import { IconFolder, IconUsers, IconPlus, IconCalendar } from '@tabler/icons-react';
 import { CompaniesManagement } from '@/components/CompaniesManagement';
 
+import { PartsNavigation } from '@/components/PartsNavigation';
+import { useState } from 'react';
+import { Id } from '@/convex/_generated/dataModel';
+
 // Projects Dashboard Component
 function ProjectsDashboard() {
   const { user } = useUser();
+  const [selectedProjectId, setSelectedProjectId] = useState<Id<"projects"> | null>(null);
   
   const projects = useQuery(
     api.navigation.getNavigationTree,
@@ -124,7 +129,7 @@ function ProjectsDashboard() {
                 ].filter(Boolean);
 
                 return (
-                  <Group key={project._id} justify="space-between" p="md" style={{ border: '1px solid var(--mantine-color-gray-3)', borderRadius: 8 }}>
+                  <Group key={project._id} justify="space-between" p="md" style={{ border: '1px solid var(--mantine-color-gray-3)', borderRadius: 8, cursor: 'pointer' }} onClick={() => setSelectedProjectId(project._id)}>
                     <Box>
                       <Group gap="sm">
                         <IconFolder size={20} color="var(--mantine-color-blue-6)" />
@@ -160,6 +165,8 @@ function ProjectsDashboard() {
             </Stack>
           )}
         </Card>
+
+        {selectedProjectId && <PartsNavigation projectId={selectedProjectId} />}
       </Stack>
     </Container>
   );

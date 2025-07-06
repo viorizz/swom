@@ -12,15 +12,18 @@ interface CreateOrderModalProps {
   opened: boolean;
   onClose: () => void;
   projectId: Id<'projects'> | null;
+  partId: Id<'parts'> | null;
 }
 
-export function CreateOrderModal({ opened, onClose, projectId }: CreateOrderModalProps) {
+export function CreateOrderModal({ opened, onClose, projectId, partId }: CreateOrderModalProps) {
   const { user } = useUser();
   const createOrder = useMutation(api.orders.create);
   const project = useQuery(api.projects.get, projectId ? { id: projectId } : 'skip');
+  const parts = useQuery(api.parts.getPartsForProject, projectId ? { projectId } : 'skip');
 
   const form = useForm({
     initialValues: {
+      partId: partId || '',
       draftName: '',
       draftNumber: '',
       orderNumber: '',
@@ -39,10 +42,10 @@ export function CreateOrderModal({ opened, onClose, projectId }: CreateOrderModa
   });
 
   const handleSubmit = async (values: typeof form.values) => {
-    if (!projectId || !project) {
+    if (!values.partId || !project) {
       notifications.show({
         title: 'Error',
-        message: 'No project selected',
+        message: 'No part selected',
         color: 'red',
       });
       return;
@@ -50,7 +53,7 @@ export function CreateOrderModal({ opened, onClose, projectId }: CreateOrderModa
 
     try {
       await createOrder({
-        projectId,
+        partId: values.partId as Id<"parts">,
         draftName: values.draftName,
         draftNumber: values.draftNumber,
         orderNumber: values.orderNumber,
@@ -93,6 +96,13 @@ export function CreateOrderModal({ opened, onClose, projectId }: CreateOrderModa
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md">
+          <Select
+            label="Part"
+            placeholder="Select a part"
+            data={parts?.map(part => ({ value: part._id, label: part.name })) || []}
+            required
+            {...form.getInputProps('partId')}
+          />
           <TextInput
             label="Draft Name"
             placeholder="Enter draft name"

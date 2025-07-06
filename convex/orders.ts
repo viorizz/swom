@@ -2,12 +2,12 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-export const listByProject = query({
-  args: { projectId: v.id("projects") },
+export const listByPart = query({
+  args: { partId: v.id("parts") },
   handler: async (ctx, args) => {
     return await ctx.db
       .query("orders")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .withIndex("by_part", (q) => q.eq("partId", args.partId))
       .collect();
   },
 });
@@ -21,7 +21,7 @@ export const get = query({
 
 export const create = mutation({
   args: {
-    projectId: v.id("projects"),
+    partId: v.id("parts"),
     draftName: v.string(),
     draftNumber: v.string(),
     orderNumber: v.string(),

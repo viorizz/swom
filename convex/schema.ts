@@ -46,8 +46,16 @@ export default defineSchema({
     .index("by_engineer_company", ["engineerCompanyId"])
     .index("by_client_company", ["clientCompanyId"]),
 
-  orders: defineTable({
+  parts: defineTable({
+    name: v.string(),
     projectId: v.id("projects"),
+    tenantId: v.string(),
+  })
+  .index("by_project", ["projectId"])
+  .index("by_tenant", ["tenantId"]),
+
+  orders: defineTable({
+    partId: v.id("parts"),
     draftName: v.string(),
     draftNumber: v.string(),
     orderNumber: v.string(),
@@ -61,7 +69,7 @@ export default defineSchema({
     }),
     status: v.union(v.literal("draft"), v.literal("submitted")),
     tenantId: v.string(),
-  }).index("by_project", ["projectId"]),
+  }).index("by_part", ["partId"]),
 
   orderItems: defineTable({
     orderId: v.id("orders"),
